@@ -1,0 +1,67 @@
+---
+title: "Complaints"
+author: "Nuo Wen Lei"
+date: "6/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r clean_data_phila, echo=FALSE}
+police_phil <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/philly_clean.csv", col_types=cols()) %>% group_by(officer_id) %>%
+  summarize(total=n(), .groups="drop") %>% 
+  mutate(chunk_num=ntile(total, 10)) %>% 
+  group_by(chunk_num) %>%
+  summarize(chunk_total=sum(total), .groups="drop") %>%
+  mutate(percent_total=chunk_total*100/sum(chunk_total)) %>% 
+  arrange(chunk_num) %>% 
+  mutate(cty="Philadelphia")
+  
+```
+
+```{r clean_data_nyc, echo=FALSE}
+police_nyc <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/nyc_clean.csv", col_types=cols()) %>% group_by(officer_id) %>%
+  summarize(total=n(), .groups="drop") %>% 
+  mutate(chunk_num=ntile(total, 10)) %>% 
+  group_by(chunk_num) %>%
+  summarize(chunk_total=sum(total), .groups="drop") %>%
+  mutate(percent_total=chunk_total*100/sum(chunk_total)) %>% 
+  arrange(chunk_num)%>% 
+  mutate(cty="NYC")
+  
+```
+
+```{r clean_data_chicago, echo=FALSE}
+police_chicago <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/chicago_clean.csv", col_types=cols()) %>% group_by(officer_id) %>%
+  summarize(total=n(), .groups="drop") %>% 
+  mutate(chunk_num=ntile(total, 10)) %>% 
+  group_by(chunk_num) %>%
+  summarize(chunk_total=sum(total), .groups="drop") %>%
+  mutate(percent_total=chunk_total*100/sum(chunk_total)) %>% 
+  arrange(chunk_num)%>% 
+  mutate(cty="Chicago")
+  
+```
+
+```{r full_data_chunk}
+full_data <- bind_rows(list(police_chicago, police_nyc, police_phil))
+```
+
+```{r plot_chunk, echo=FALSE}
+
+ggplot(data=full_data, mapping=aes(x=chunk_num, y=percent_total)) + geom_col() + labs(title="Distribution of Offenses by Decile",
+                                                                                   subtitle="First decile has around 1/3 of all complaints",
+                                                                                   x="Decile Number",
+                                                                                   y="Percentage of Offenses",
+                                                                                   caption="Data from Financial Times") +
+  theme_classic() +
+    scale_x_continuous(breaks=1:10) +
+  scale_y_continuous(labels=scales::percent_format(accuracy=1))
+
+
+```
+
