@@ -24,7 +24,7 @@ police_phil <- read_csv("https://raw.githubusercontent.com/Financial-Times/polic
 ```
 
 ```{r clean_data_nyc, echo=FALSE}
-police_nyc <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/nyc_clean.csv", col_types=cols()) %>% group_by(officer_id) %>%
+police_nyc <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/nyc_clean.csv", col_types=cols()) %>% group_by(OfficerID) %>%
   summarize(total=n(), .groups="drop") %>% 
   mutate(chunk_num=ntile(total, 10)) %>% 
   group_by(chunk_num) %>%
@@ -36,7 +36,7 @@ police_nyc <- read_csv("https://raw.githubusercontent.com/Financial-Times/police
 ```
 
 ```{r clean_data_chicago, echo=FALSE}
-police_chicago <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/chicago_clean.csv", col_types=cols()) %>% group_by(officer_id) %>%
+police_chicago <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/chicago_clean.csv", col_types=cols()) %>% group_by(UID) %>%
   summarize(total=n(), .groups="drop") %>% 
   mutate(chunk_num=ntile(total, 10)) %>% 
   group_by(chunk_num) %>%
@@ -47,14 +47,17 @@ police_chicago <- read_csv("https://raw.githubusercontent.com/Financial-Times/po
   
 ```
 
-```{r full_data_chunk}
+```{r full_data_chunk, echo=FALSE}
 full_data <- bind_rows(list(police_chicago, police_nyc, police_phil))
 ```
 
 ```{r plot_chunk, echo=FALSE}
 
-ggplot(data=full_data, mapping=aes(x=chunk_num, y=percent_total)) + geom_col() + labs(title="Distribution of Offenses by Decile",
-                                                                                   subtitle="First decile has around 1/3 of all complaints",
+ggplot(data=full_data, mapping=aes(x=chunk_num, y=percent_total)) + 
+  geom_col(fill=if_else(full_data$chunk_num == 10, "light blue", "steel blue")) +
+  facet_wrap(~cty) +
+  labs(title="Distribution of Offenses by Decile in Major Cities",
+                                                                                   subtitle="First decile has around 1/3 of all complaints in all cities",
                                                                                    x="Decile Number",
                                                                                    y="Percentage of Offenses",
                                                                                    caption="Data from Financial Times") +
